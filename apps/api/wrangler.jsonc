@@ -2,10 +2,19 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "api",
   "main": "src/index.ts",
-  "compatibility_date": "2026-08-23"
-  // "compatibility_flags": [
-  //   "nodejs_compat"
-  // ],
+  "compatibility_date": "2026-08-23",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "jobtracker",
+      "database_id": "2ebb6a7c-9aaa-4690-8244-61ef802b5d37",
+      "migrations_dir": "./src/db/migrations",
+    },
+  ],
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env",
+  ],
   // "vars": {
   //   "MY_VAR": "my-variable"
   // },
