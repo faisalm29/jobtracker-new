@@ -4,8 +4,8 @@ import {
   selectApplicationsSchema,
 } from "../../db/schema";
 import { createErrorSchema } from "../../lib/create-error-schema";
-import jsonContent from "../../lib/json-content";
-import jsonContentRequired from "../../lib/json-content-required";
+import { jsonContent } from "../../lib/json-content";
+import { jsonContentRequired } from "../../lib/json-content-required";
 
 const tags = ["Applications"];
 

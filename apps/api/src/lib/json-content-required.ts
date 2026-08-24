@@ -1,8 +1,8 @@
 import type { ZodSchema } from "./types.ts";
 
-import jsonContent from "./json-content.js";
+import { jsonContent } from "./json-content.js";
 
-const jsonContentRequired = <T extends ZodSchema>(
+export const jsonContentRequired = <T extends ZodSchema>(
   schema: T,
   description: string
 ) => {
@@ -11,5 +11,3 @@ const jsonContentRequired = <T extends ZodSchema>(
     required: true,
   };
 };
-
-export default jsonContentRequired;
