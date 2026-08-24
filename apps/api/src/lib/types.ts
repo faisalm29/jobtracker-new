@@ -3,7 +3,7 @@ import { createAuth } from "./auth";
 
 export interface AppEnv {
   Variables: {
-    session: ReturnType<typeof createAuth>["$Infer"]["Session"] | null;
+    session: ReturnType<typeof createAuth>["$Infer"]["Session"];
   };
   Bindings: {
     DB: D1Database;

@@ -16,6 +16,7 @@
     "@jobtracker/ui": "workspace:*",
     "@tanstack/react-router": "^1.170.32",
     "@tanstack/react-router-devtools": "^1.167.1",
+    "better-auth": "^1.7.1",
     "lucide-react": "^1.33.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"

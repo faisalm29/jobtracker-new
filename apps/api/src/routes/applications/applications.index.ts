@@ -4,6 +4,7 @@ import * as handlers from "./applications.handlers";
 
 const router = createRouter()
   .openapi(routes.list, handlers.list)
-  .openapi(routes.create, handlers.create);
+  .openapi(routes.create, handlers.create)
+  .openapi(routes.getOne, handlers.getOne);
 
 export default router;
