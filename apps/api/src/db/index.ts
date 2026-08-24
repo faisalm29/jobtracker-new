@@ -2,7 +2,7 @@ import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
 import { AppEnv } from "../lib/types";
 
-// use for generating the better auth schema
+// use this just for better auth schema generation
 export const db = (env: AppEnv["Bindings"]) => {
   return drizzle(env.DB, {
     schema,

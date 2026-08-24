@@ -1,6 +1,10 @@
 import { OpenAPIHono, RouteConfig, RouteHandler, z } from "@hono/zod-openapi";
+import { createAuth } from "./auth";
 
 export interface AppEnv {
+  Variables: {
+    session: ReturnType<typeof createAuth>["$Infer"]["Session"] | null;
+  };
   Bindings: {
     DB: D1Database;
     BETTER_AUTH_SECRET: string;
