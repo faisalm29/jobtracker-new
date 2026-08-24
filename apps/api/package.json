@@ -2,6 +2,10 @@
   "name": "@jobtracker/api",
   "type": "module",
   "version": "1.0.0",
+  "exports": {
+    "./routes": "./src/routes/index.ts",
+    "./schema": "./src/db/schema.ts"
+  },
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy --minify",
@@ -17,7 +21,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^24.12.4",
+    "@types/node": "^24",
     "drizzle-kit": "^0.31.10",
     "wrangler": "^4.110.0"
   }

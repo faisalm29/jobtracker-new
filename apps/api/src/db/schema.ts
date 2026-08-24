@@ -1,3 +1,4 @@
+import { z } from "@hono/zod-openapi";
 import { relations, sql } from "drizzle-orm";
 import {
   sqliteTable,

@@ -1,4 +1,4 @@
-import { Button } from "@jobtracker/ui/components/button"
+import { Button } from "@jobtracker/ui/components/button";
 
 export function App() {
   return (
@@ -15,5 +15,5 @@ export function App() {
         </div>
       </div>
     </div>
-  )
+  );
 }
