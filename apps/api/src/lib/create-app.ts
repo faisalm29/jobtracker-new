@@ -3,9 +3,21 @@ import { AppOpenAPI } from "./types";
 import { attachSession } from "../middlewares/attach-session";
 import { requireAuth } from "../middlewares/require-auth";
 import { createAuth } from "./auth";
+import { cors } from "hono/cors";
 
 const createApp = () => {
   const app = createRouter();
+
+  app.use(
+    "*",
+    cors({
+      origin: "http://localhost:5173",
+      allowHeaders: ["Content-Type", "Authorization"],
+      allowMethods: ["GET", "POST", "OPTIONS"],
+      credentials: true,
+      exposeHeaders: ["Set-Auth-Token"],
+    })
+  );
 
   app.use("*", attachSession);
   app.use("/applications/*", requireAuth);

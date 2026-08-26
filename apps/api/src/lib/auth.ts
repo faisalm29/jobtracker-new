@@ -16,6 +16,7 @@ export const auth = betterAuth({
     enabled: true,
   },
   plugins: [bearer(), openAPI()],
+  trustedOrigins: ["http://localhost:5173"],
 });
 
 // use inside hono handlers where we can access cloudflare d1 binding
@@ -30,5 +31,6 @@ export const createAuth = (env: AppEnv["Bindings"]) => {
       enabled: true,
     },
     plugins: [bearer(), openAPI()],
+    trustedOrigins: ["http://localhost:5173"],
   });
 };

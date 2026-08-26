@@ -3,7 +3,8 @@ import { createAuth } from "./auth";
 
 export interface AppEnv {
   Variables: {
-    session: ReturnType<typeof createAuth>["$Infer"]["Session"];
+    session: ReturnType<typeof createAuth>["$Infer"]["Session"] | null;
+    auth: string;
   };
   Bindings: {
     DB: D1Database;
@@ -15,8 +16,23 @@ export interface AppEnv {
   };
 }
 
+export type AuthenticatedAppEnv = Omit<AppEnv, "Variables"> & {
+  Variables: Omit<AppEnv["Variables"], "session"> & {
+    session: NonNullable<AppEnv["Variables"]["session"]>;
+  };
+};
+
+// export interface AuthenticatedAppEnv extends Omit<AppEnv, "Variables"> {
+//   Variables: Omit<AppEnv["Variables"], "session"> & {
+//     session: NonNullable<AppEnv["Variables"]["session"]>;
+//   };
+// }
+
 export type AppOpenAPI = OpenAPIHono<AppEnv, {}, "/">;
-export type AppRouteHandler<R extends RouteConfig> = RouteHandler<R, AppEnv>;
+export type AppRouteHandler<R extends RouteConfig> = RouteHandler<
+  R,
+  AuthenticatedAppEnv
+>;
 
 export type ZodSchema = z.ZodUnion | z.ZodObject | z.ZodArray<z.ZodType>;
 
