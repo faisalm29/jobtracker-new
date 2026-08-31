@@ -1,6 +1,17 @@
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import {
+  createRootRouteWithContext,
+  Link,
+  Outlet,
+} from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import "@jobtracker/ui/globals.css";
+import type { Auth } from "better-auth";
+
+interface RouterContext {
+  queryClient: QueryClient;
+  session: Auth["$Infer"]["Session"] | null;
+}
 
 const RootLayout = () => (
   <>
@@ -18,4 +29,6 @@ const RootLayout = () => (
   </>
 );
 
-export const Route = createRootRoute({ component: RootLayout });
+export const Route = createRootRouteWithContext<RouterContext>()({
+  component: RootLayout,
+});

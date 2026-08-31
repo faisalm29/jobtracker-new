@@ -23,7 +23,7 @@ CREATE TABLE `applications` (
 	`user_id` text NOT NULL,
 	`company_name` text NOT NULL,
 	`role_title` text NOT NULL,
-	`status` text,
+	`status` text DEFAULT 'saved' NOT NULL,
 	`salary` integer,
 	`job_url` text,
 	`source` text,

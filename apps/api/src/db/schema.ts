@@ -28,7 +28,9 @@ export const applications = sqliteTable(
         "rejected",
         "withdrawn",
       ],
-    }),
+    })
+      .notNull()
+      .default("saved"),
     salary: integer("salary"),
     jobUrl: text("job_url"),
     source: text("source", {

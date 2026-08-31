@@ -4,10 +4,11 @@ import { CreateRoute, ListRoute, GetOneRoute } from "./applications.routes";
 import { applications } from "../../db/schema";
 import { and, eq } from "drizzle-orm";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
+import { getSession } from "../../lib/get-session";
 
 export const list: AppRouteHandler<ListRoute> = async (c) => {
   const db = createDb(c.env.DB);
-  const user = c.get("session").user;
+  const user = getSession(c).user;
   const results = await db.query.applications.findMany({
     where: eq(applications.userId, user.id),
   });
@@ -16,7 +17,7 @@ export const list: AppRouteHandler<ListRoute> = async (c) => {
 
 export const create: AppRouteHandler<CreateRoute> = async (c) => {
   const db = createDb(c.env.DB);
-  const user = c.get("session").user;
+  const user = getSession(c).user;
   const application = c.req.valid("json");
   const [inserted] = await db
     .insert(applications)
@@ -31,7 +32,7 @@ export const create: AppRouteHandler<CreateRoute> = async (c) => {
 
 export const getOne: AppRouteHandler<GetOneRoute> = async (c) => {
   const db = createDb(c.env.DB);
-  const user = c.get("session").user;
+  const user = getSession(c).user;
   const { id } = c.req.valid("param");
 
   const result = await db.query.applications.findFirst({
