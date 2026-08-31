@@ -2,6 +2,7 @@ import { createRoute, z } from "@hono/zod-openapi";
 import {
   insertApplicationsSchema,
   selectApplicationsSchema,
+  patchApplicationsSchema,
 } from "../../db/schema";
 import { createErrorSchema } from "../../lib/create-error-schema";
 import { jsonContent } from "../../lib/json-content";
@@ -69,6 +70,59 @@ export const getOne = createRoute({
   },
 });
 
+export const patch = createRoute({
+  tags,
+  path: "/{id}",
+  method: "patch",
+  request: {
+    params: IdParamsSchema,
+    body: jsonContentRequired(
+      patchApplicationsSchema,
+      "The application updates"
+    ),
+  },
+  responses: {
+    [StatusCodes.OK as 200]: jsonContent(
+      selectApplicationsSchema,
+      "The updated application"
+    ),
+    [StatusCodes.NOT_FOUND as 404]: jsonContent(
+      notFoundSchema,
+      "Task not found"
+    ),
+    [StatusCodes.UNPROCESSABLE_ENTITY as 422]: jsonContent(
+      createErrorSchema(patchApplicationsSchema).or(
+        createErrorSchema(IdParamsSchema)
+      ),
+      "The validation error(s)"
+    ),
+  },
+});
+
+export const remove = createRoute({
+  tags,
+  path: "/{id}",
+  method: "delete",
+  request: {
+    params: IdParamsSchema,
+  },
+  responses: {
+    [StatusCodes.NO_CONTENT as 204]: {
+      description: "Application deleted",
+    },
+    [StatusCodes.NOT_FOUND as 404]: jsonContent(
+      notFoundSchema,
+      "Application not found"
+    ),
+    [StatusCodes.UNPROCESSABLE_ENTITY as 422]: jsonContent(
+      createErrorSchema(IdParamsSchema),
+      "Invalid id error"
+    ),
+  },
+});
+
 export type ListRoute = typeof list;
 export type CreateRoute = typeof create;
 export type GetOneRoute = typeof getOne;
+export type PatchRoute = typeof patch;
+export type RemoveRoute = typeof remove;

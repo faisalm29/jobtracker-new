@@ -1,6 +1,6 @@
-import type { Application } from "@/features/applications/queries";
 import type { ChartConfig } from "@jobtracker/ui/components/chart";
 import { HorizontalBarChart } from "@jobtracker/ui/components/HorizontalBarChart";
+import type { SelectApplicationsSchema } from "@jobtracker/api/schema";
 
 const STATUS_ORDER = [
   "saved",
@@ -23,7 +23,7 @@ const chartConfig = {
   withdrawn: { label: "Withdrawn", color: "var(--chart-2)" },
 } satisfies ChartConfig;
 
-const getStatusCounts = (applications: Application[]) => {
+const getStatusCounts = (applications: SelectApplicationsSchema[]) => {
   const counts = Object.fromEntries(STATUS_ORDER.map((s) => [s, 0]));
 
   for (const app of applications) {
@@ -40,7 +40,7 @@ const getStatusCounts = (applications: Application[]) => {
 };
 
 interface ApplicationStatusChartProps {
-  applications: Application[];
+  applications: SelectApplicationsSchema[];
 }
 
 export const ApplicationStatusChart = ({

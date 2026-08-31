@@ -167,6 +167,7 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 }));
 
 export const selectApplicationsSchema = createSelectSchema(applications);
+export type SelectApplicationsSchema = z.infer<typeof selectApplicationsSchema>;
 
 export const insertApplicationsSchema = createInsertSchema(applications).omit({
   id: true,
@@ -174,3 +175,7 @@ export const insertApplicationsSchema = createInsertSchema(applications).omit({
   createdAt: true,
   updatedAt: true,
 });
+export type InsertApplicationsSchema = z.infer<typeof insertApplicationsSchema>;
+
+export const patchApplicationsSchema = insertApplicationsSchema.partial();
+export type PatchApplicationsSchema = z.infer<typeof patchApplicationsSchema>;

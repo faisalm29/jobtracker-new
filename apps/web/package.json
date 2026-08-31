@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@jobtracker/api": "workspace:*",
     "@jobtracker/api-client": "workspace:*",
     "@jobtracker/ui": "workspace:*",
     "@tanstack/react-form": "^1.33.5",

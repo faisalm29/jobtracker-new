@@ -60,6 +60,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@jobtracker/api':
+        specifier: workspace:*
+        version: link:../api
       '@jobtracker/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client

@@ -1,4 +1,4 @@
-import type { Application } from "@/features/applications/queries";
+import type { PatchApplicationsSchema } from "@jobtracker/api/schema";
 import {
   Alert,
   AlertDescription,
@@ -21,9 +21,18 @@ import {
 import { Input } from "@jobtracker/ui/components/input";
 import { TriangleAlert } from "lucide-react";
 
-const defaultApplication: Application = {
-  companyName: "",
-  roleTitle: "",
+const defaultApplication: PatchApplicationsSchema = {
+  companyName: null,
+  roleTitle: null,
+  status: "saved",
+  salary: null,
+  jobUrl: null,
+  source: null,
+  location: null,
+  jobType: null,
+  deadline: null,
+  notes: null,
+  appliedDate: null,
 };
 
 export const AddApplicationForm = () => {
