@@ -4,6 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { applicationsQueryOptions } from "@/features/applications/queries";
+import { InsertApplicationForm } from "@/components/InsertApplicationForm";
 
 export const Route = createFileRoute("/_authenticated/applications/")({
   loader: ({ context: { queryClient } }) =>
@@ -61,6 +62,7 @@ function RouteComponent() {
           ))}
         </ul>
       </main>
+      <InsertApplicationForm />
     </div>
   );
 }

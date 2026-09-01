@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "./card";
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,

@@ -1,4 +1,4 @@
-import { z } from "@hono/zod-openapi";
+import { z } from "zod";
 import { relations, sql } from "drizzle-orm";
 import {
   sqliteTable,
@@ -169,7 +169,10 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 export const selectApplicationsSchema = createSelectSchema(applications);
 export type SelectApplicationsSchema = z.infer<typeof selectApplicationsSchema>;
 
-export const insertApplicationsSchema = createInsertSchema(applications).omit({
+export const insertApplicationsSchema = createInsertSchema(applications, {
+  deadline: z.coerce.date().nullish(),
+  appliedDate: z.coerce.date().nullish(),
+}).omit({
   id: true,
   userId: true,
   createdAt: true,

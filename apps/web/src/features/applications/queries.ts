@@ -1,5 +1,10 @@
-import { queryOptions } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { hcWithType } from "@jobtracker/api-client";
+import type { InsertApplicationsSchema } from "@jobtracker/api/schema";
 
 const client = hcWithType("http://localhost:8787", {
   init: {
@@ -33,6 +38,25 @@ export const applicationQueryOptions = (id: string) =>
       return res.json();
     },
   });
+
+export const useInsertApplicationMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: InsertApplicationsSchema) => {
+      const res = await client.applications.$post({
+        json: data,
+      });
+
+      if (!res.ok) throw new Error("Failed to create application.");
+
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+    },
+  });
+};
 
 export type Application = Awaited<
   ReturnType<

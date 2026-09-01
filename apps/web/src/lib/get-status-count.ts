@@ -1,5 +1,4 @@
-// import type { Application } from "../features/applications/queries";
-import type { SelectApplicationsSchema } from "@jobtracker/api/schema";
+import type { Application } from "../features/applications/queries";
 
 const STATUS_LABELS: Record<string, string> = {
   saved: "Saved",
@@ -21,7 +20,7 @@ const STATUS_ORDER = [
   "withdrawn",
 ];
 
-export const getStatusCounts = (applications: SelectApplicationsSchema[]) => {
+export const getStatusCounts = (applications: Application[]) => {
   const counts = Object.fromEntries(STATUS_ORDER.map((s) => [s, 0]));
 
   for (const app of applications) {
