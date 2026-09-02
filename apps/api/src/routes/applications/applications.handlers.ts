@@ -83,13 +83,12 @@ export const patch: AppRouteHandler<PatchRoute> = async (c) => {
     );
   }
 
-  const [application] = await db
-    .update(applications)
-    .set(updates)
-    .where(and(eq(applications.id, id), eq(applications.userId, user.id)))
-    .returning();
+  // fetch exising to detect status change
+  const existing = await db.query.applications.findFirst({
+    where: and(eq(applications.id, id), eq(applications.userId, user.id)),
+  });
 
-  if (!application) {
+  if (!existing) {
     return c.json(
       {
         message: ReasonPhrases.NOT_FOUND,
@@ -97,6 +96,18 @@ export const patch: AppRouteHandler<PatchRoute> = async (c) => {
       StatusCodes.NOT_FOUND
     );
   }
+
+  const statusChanged =
+    updates.status !== undefined && updates.status !== existing.status;
+
+  const [application] = await db
+    .update(applications)
+    .set({
+      ...updates,
+      ...(statusChanged && { stageEnteredAt: new Date() }),
+    })
+    .where(and(eq(applications.id, id), eq(applications.userId, user.id)))
+    .returning();
 
   return c.json(application, StatusCodes.OK);
 };

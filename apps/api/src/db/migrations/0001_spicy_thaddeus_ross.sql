@@ -1,0 +1,1 @@
+ALTER TABLE `applications` ADD `stage_entered_at` integer;

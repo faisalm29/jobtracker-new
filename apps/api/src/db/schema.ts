@@ -9,6 +9,16 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 
+const applicationStatus = z.enum([
+  "saved",
+  "applied",
+  "interviewing",
+  "offered",
+  "accepted",
+  "rejected",
+  "withdrawn",
+]);
+
 export const applications = sqliteTable(
   "applications",
   {
@@ -50,6 +60,7 @@ export const applications = sqliteTable(
       .notNull()
       .default(sql`(unixepoch())`)
       .$onUpdate(() => new Date()),
+    stageEnteredAt: integer("stage_entered_at", { mode: "timestamp" }),
   },
   (table) => [index("applications_user_id_idx").on(table.userId)]
 );
@@ -166,6 +177,8 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   }),
 }));
 
+export type ApplicationStatus = z.infer<typeof applicationStatus>;
+
 export const selectApplicationsSchema = createSelectSchema(applications);
 export type SelectApplicationsSchema = z.infer<typeof selectApplicationsSchema>;
 
@@ -182,3 +195,43 @@ export type InsertApplicationsSchema = z.infer<typeof insertApplicationsSchema>;
 
 export const patchApplicationsSchema = insertApplicationsSchema.partial();
 export type PatchApplicationsSchema = z.infer<typeof patchApplicationsSchema>;
+
+const applicationSummarySchema = z.object({
+  id: z.string(),
+  companyName: z.string(),
+  roleTitle: z.string(),
+  status: applicationStatus,
+  updatedAt: z.date().nullable(),
+  createdAt: z.date(),
+});
+
+export const selectStatsSchema = z.object({
+  data: z.object({
+    breakdown: z.record(applicationStatus, z.int()),
+    activePipelineCount: z.int(),
+    responseRate: z.int().min(0).max(100).nullable(),
+    responseMeta: z.object({
+      responded: z.int(),
+      total: z.int(),
+    }),
+    recentApplications: z.array(applicationSummarySchema),
+    staleApplications: z.array(
+      applicationSummarySchema.extend({
+        daysSinceActivity: z.int(),
+      })
+    ),
+    staleThresholdDays: z.int(),
+    applicationsByWeek: z.array(
+      z.object({
+        period: z.string(),
+        count: z.int(),
+      })
+    ),
+    timeInStage: z.array(
+      applicationSummarySchema.extend({
+        stageEnteredAt: z.date().nullable(),
+        daysInStage: z.int(),
+      })
+    ),
+  }),
+});
