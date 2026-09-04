@@ -5,6 +5,7 @@ import { getSession } from "../../lib/get-session";
 import { applications, type ApplicationStatus } from "../../db/schema";
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 import { StatusCodes } from "http-status-codes";
+import { fillMonthGaps } from "../../lib/fill-month-gaps";
 
 const ACTIVE_STATUSES = [
   "saved",
@@ -88,9 +89,9 @@ export const stats: AppRouteHandler<StatsRoute> = async (c) => {
     )
     .limit(5);
 
-  const applicationsByWeek = await db
+  const applicationsByMonth = await db
     .select({
-      period: sql<string>`strftime('%Y-W%W', ${applications.appliedDate}, 'unixepoch')`,
+      period: sql<string>`strftime('%Y-%m', ${applications.appliedDate}, 'unixepoch')`,
       count: count(),
     })
     .from(applications)
@@ -98,11 +99,11 @@ export const stats: AppRouteHandler<StatsRoute> = async (c) => {
       and(
         eq(applications.userId, user.id),
         sql`${applications.appliedDate} is not null`,
-        sql`${applications.appliedDate} >= unixepoch('now', '-12 weeks')`
+        sql`${applications.appliedDate} >= unixepoch('now', '-12 months')`
       )
     )
-    .groupBy(sql`strftime('%Y-W%W', ${applications.appliedDate}, 'unixepoch')`)
-    .orderBy(sql`strftime('%Y-W%W', ${applications.appliedDate}, 'unixepoch')`);
+    .groupBy(sql`strftime('%Y-%m', ${applications.appliedDate})`)
+    .orderBy(sql`strftime('%Y-%m', ${applications.appliedDate})`);
 
   const timeInStage = await db
     .select({
@@ -153,6 +154,11 @@ export const stats: AppRouteHandler<StatsRoute> = async (c) => {
   const responseRate =
     totalApplied > 0 ? Math.round((totalResponded / totalApplied) * 100) : null;
 
+  const filledMonths = fillMonthGaps(applicationsByMonth, 12);
+  console.log("filledMonths:", filledMonths);
+
+  console.log("applicationsByMonth raw:", applicationsByMonth);
+
   return c.json(
     {
       data: {
@@ -166,7 +172,7 @@ export const stats: AppRouteHandler<StatsRoute> = async (c) => {
         recentApplications,
         staleApplications,
         staleThresholdDays: STALE_THRESHOLD_DAYS,
-        applicationsByWeek,
+        applicationsByMonth: filledMonths,
         timeInStage,
       },
     },

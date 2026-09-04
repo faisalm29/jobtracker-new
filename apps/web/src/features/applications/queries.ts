@@ -58,6 +58,17 @@ export const useInsertApplicationMutation = () => {
   });
 };
 
+export const statsQueryOptions = () =>
+  queryOptions({
+    queryKey: ["stats"],
+    queryFn: async () => {
+      const res = await client.stats.$get();
+      if (!res.ok) throw new Error("Failed to fetch stats for dashboard.");
+      const { data } = await res.json();
+      return data;
+    },
+  });
+
 export type Application = Awaited<
   ReturnType<
     NonNullable<ReturnType<typeof applicationsQueryOptions>["queryFn"]>

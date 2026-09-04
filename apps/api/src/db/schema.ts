@@ -196,14 +196,16 @@ export type InsertApplicationsSchema = z.infer<typeof insertApplicationsSchema>;
 export const patchApplicationsSchema = insertApplicationsSchema.partial();
 export type PatchApplicationsSchema = z.infer<typeof patchApplicationsSchema>;
 
-const applicationSummarySchema = z.object({
+export const applicationSummarySchema = z.object({
   id: z.string(),
   companyName: z.string(),
   roleTitle: z.string(),
   status: applicationStatus,
-  updatedAt: z.date().nullable(),
-  createdAt: z.date(),
+  updatedAt: z.union([z.string(), z.date()]).nullable(),
+  createdAt: z.union([z.string(), z.date()]),
 });
+
+export type ApplicationSummarySchema = z.infer<typeof applicationSummarySchema>;
 
 export const selectStatsSchema = z.object({
   data: z.object({
@@ -221,7 +223,7 @@ export const selectStatsSchema = z.object({
       })
     ),
     staleThresholdDays: z.int(),
-    applicationsByWeek: z.array(
+    applicationsByMonth: z.array(
       z.object({
         period: z.string(),
         count: z.int(),

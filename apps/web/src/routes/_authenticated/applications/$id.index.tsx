@@ -2,7 +2,7 @@ import { applicationQueryOptions } from "@/features/applications/queries";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_authenticated/applications/$id")({
+export const Route = createFileRoute("/_authenticated/applications/$id/")({
   loader: ({ context: { queryClient }, params: { id } }) =>
     queryClient.query(applicationQueryOptions(id)),
   pendingComponent: () => <div>Loading...</div>,

@@ -1,6 +1,5 @@
 import type { ChartConfig } from "@jobtracker/ui/components/chart";
 import { HorizontalBarChart } from "@jobtracker/ui/components/HorizontalBarChart";
-import type { Application } from "@/features/applications/queries";
 
 const STATUS_ORDER = [
   "saved",
@@ -23,34 +22,28 @@ const chartConfig = {
   withdrawn: { label: "Withdrawn", color: "var(--chart-2)" },
 } satisfies ChartConfig;
 
-const getStatusCounts = (applications: Application[]) => {
-  const counts = Object.fromEntries(STATUS_ORDER.map((s) => [s, 0]));
-
-  for (const app of applications) {
-    if (app.status && app.status in counts) {
-      counts[app.status]++;
-    }
-  }
-
-  return STATUS_ORDER.map((status) => ({
-    label: status,
-    value: counts[status],
-    fill: `var(--color-${status})`,
-  }));
-};
+type StatusBreakdown = Partial<Record<(typeof STATUS_ORDER)[number], number>>;
 
 interface ApplicationStatusChartProps {
-  applications: Application[];
+  breakdown: StatusBreakdown;
 }
 
 export const ApplicationStatusChart = ({
-  applications,
+  breakdown,
 }: ApplicationStatusChartProps) => {
+  const data = STATUS_ORDER.filter(
+    (status) => (breakdown[status] ?? 0) > 0
+  ).map((status) => ({
+    label: status,
+    value: breakdown[status] ?? 0,
+    fill: `var(--color-${status})`,
+  }));
+
   return (
     <HorizontalBarChart
       title="Applications by Status"
       description="Your current pipeline breakdown"
-      data={getStatusCounts(applications)}
+      data={data}
       config={chartConfig}
     />
   );
