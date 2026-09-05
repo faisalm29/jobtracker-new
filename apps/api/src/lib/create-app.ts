@@ -13,7 +13,7 @@ const createApp = () => {
     cors({
       origin: "http://localhost:5173",
       allowHeaders: ["Content-Type", "Authorization"],
-      allowMethods: ["GET", "POST", "OPTIONS"],
+      allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
       credentials: true,
       exposeHeaders: ["Set-Auth-Token"],
     })

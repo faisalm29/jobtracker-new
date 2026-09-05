@@ -1,12 +1,15 @@
-import { useInsertApplicationMutation } from "@/features/applications/queries";
+import {
+  useUpdateApplicationMutation,
+  type Application,
+} from "@/features/applications/queries";
 import { insertApplicationsSchema } from "@jobtracker/api/schema";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@jobtracker/ui/components/alert";
 import { Button } from "@jobtracker/ui/components/button";
 import { Calendar } from "@jobtracker/ui/components/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@jobtracker/ui/components/popover";
 import {
   Card,
   CardContent,
@@ -22,6 +25,11 @@ import {
 } from "@jobtracker/ui/components/field";
 import { Input } from "@jobtracker/ui/components/input";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@jobtracker/ui/components/popover";
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -32,9 +40,10 @@ import {
 } from "@jobtracker/ui/components/select";
 import { Textarea } from "@jobtracker/ui/components/textarea";
 import { useForm } from "@tanstack/react-form";
-import { z } from "zod";
+import { useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, TriangleAlert, XIcon } from "lucide-react";
+import { z } from "zod";
 
 const STATUS_OPTIONS = [
   { value: "saved", label: "Saved" },
@@ -63,50 +72,67 @@ const JOBTYPE_OPTIONS = [
   { value: "internship", label: "Internship" },
 ] as const;
 
-const insertApplicationsValidation = insertApplicationsSchema.extend({
+export const editApplicationsValidation = insertApplicationsSchema.extend({
   companyName: z.string().min(1, "Company name is required"),
   roleTitle: z.string().min(1, "Role title is required"),
-  salary: z.number().positive("Salary must be a positve number").nullish(),
+  salary: z.number().positive("Salary must be a positive number").nullish(),
   jobUrl: z.url("Must be a valid URL").nullish(),
   deadline: z.date().nullish(),
   appliedDate: z.date().nullish(),
 });
 
-type InsertApplicationsSchema = z.infer<typeof insertApplicationsValidation>;
+export type EditApplicationsSchema = z.infer<typeof editApplicationsValidation>;
 
-const defaultApplication: InsertApplicationsSchema = {
-  companyName: "",
-  roleTitle: "",
-  status: "saved",
-  salary: null,
-  jobUrl: null,
-  source: null,
-  location: null,
-  jobType: null,
-  deadline: null,
-  notes: null,
-  appliedDate: null,
-};
+interface EditApplicationFormProps {
+  application: Application;
+}
 
-export const InsertApplicationForm = () => {
-  const { mutateAsync } = useInsertApplicationMutation();
+export const EditApplicationForm = ({
+  application,
+}: EditApplicationFormProps) => {
+  const { mutateAsync, isPending, error } = useUpdateApplicationMutation();
+  const navigate = useNavigate();
+
+  const defaultValues: EditApplicationsSchema = {
+    companyName: application.companyName,
+    roleTitle: application.roleTitle,
+    status: application.status,
+    salary: application.salary ?? null,
+    jobUrl: application.jobUrl ?? null,
+    source: application.source ?? null,
+    location: application.location ?? null,
+    jobType: application.jobType ?? null,
+    deadline: application.deadline ? new Date(application.deadline) : null,
+    notes: application.notes ?? null,
+    appliedDate: application.appliedDate
+      ? new Date(application.appliedDate)
+      : null,
+  };
 
   const form = useForm({
-    defaultValues: defaultApplication,
+    defaultValues,
     validators: {
-      onSubmit: insertApplicationsValidation,
+      onSubmit: editApplicationsValidation,
     },
     onSubmit: async ({ value }) => {
-      await mutateAsync(value);
+      await mutateAsync({
+        id: application.id,
+        data: value,
+      });
+
+      navigate({
+        to: "/applications/$id",
+        params: { id: application.id },
+      });
     },
   });
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>New Application</CardTitle>
+        <CardTitle>Edit Application</CardTitle>
         <CardDescription>
-          Fill up the form below to add a job application
+          Update the application details for {application.companyName}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -117,13 +143,24 @@ export const InsertApplicationForm = () => {
           }}
         >
           <FieldGroup>
+            {error && (
+              <Field>
+                <Alert variant="destructive">
+                  <TriangleAlert className="size-4" />
+                  <AlertTitle>Update Failed</AlertTitle>
+                  <AlertDescription>{error.message}</AlertDescription>
+                </Alert>
+              </Field>
+            )}
+
+            {/* Company Name */}
             <form.Field
               name="companyName"
               children={(field) => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Company Name</FieldLabel>
                     <Input
                       id={field.name}
@@ -135,17 +172,19 @@ export const InsertApplicationForm = () => {
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
+
+            {/* Role Title */}
             <form.Field
               name="roleTitle"
               children={(field) => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Role Title</FieldLabel>
                     <Input
                       id={field.name}
@@ -157,7 +196,7 @@ export const InsertApplicationForm = () => {
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
@@ -169,13 +208,15 @@ export const InsertApplicationForm = () => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Status</FieldLabel>
                     <Select
                       items={STATUS_OPTIONS}
                       value={field.state.value}
                       onValueChange={(value) => {
-                        field.handleChange(value as typeof field.state.value);
+                        if (value) {
+                          field.handleChange(value as typeof field.state.value);
+                        }
                       }}
                     >
                       <SelectTrigger id={field.name} aria-invalid={isInvalid}>
@@ -195,7 +236,7 @@ export const InsertApplicationForm = () => {
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
@@ -207,21 +248,25 @@ export const InsertApplicationForm = () => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Salary</FieldLabel>
                     <Input
                       id={field.name}
-                      value={Number(field.state.value)}
+                      value={field.state.value ?? ""}
                       type="number"
                       onChange={(e) =>
-                        field.handleChange(e.target.valueAsNumber)
+                        field.handleChange(
+                          e.target.value === "" || isNaN(e.target.valueAsNumber)
+                            ? null
+                            : e.target.valueAsNumber
+                        )
                       }
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
@@ -233,19 +278,25 @@ export const InsertApplicationForm = () => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Job URL</FieldLabel>
                     <Input
                       id={field.name}
                       value={field.state.value ?? ""}
                       type="text"
-                      onChange={(e) => field.handleChange(e.target.value)}
+                      onChange={(e) =>
+                        field.handleChange(
+                          e.target.value.trim() === ""
+                            ? null
+                            : e.target.value.trim()
+                        )
+                      }
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
@@ -257,7 +308,7 @@ export const InsertApplicationForm = () => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Source</FieldLabel>
                     <Select
                       items={SOURCE_OPTIONS}
@@ -273,7 +324,10 @@ export const InsertApplicationForm = () => {
                         <SelectGroup>
                           <SelectLabel>Sources</SelectLabel>
                           {SOURCE_OPTIONS.map((source) => (
-                            <SelectItem key={source.value} value={source.value}>
+                            <SelectItem
+                              key={String(source.value)}
+                              value={source.value}
+                            >
                               {source.label}
                             </SelectItem>
                           ))}
@@ -283,7 +337,7 @@ export const InsertApplicationForm = () => {
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
@@ -295,19 +349,25 @@ export const InsertApplicationForm = () => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Location</FieldLabel>
                     <Input
                       id={field.name}
                       value={field.state.value ?? ""}
                       type="text"
-                      onChange={(e) => field.handleChange(e.target.value)}
+                      onChange={(e) =>
+                        field.handleChange(
+                          e.target.value.trim() === ""
+                            ? null
+                            : e.target.value.trim()
+                        )
+                      }
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
@@ -319,7 +379,7 @@ export const InsertApplicationForm = () => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Job Type</FieldLabel>
                     <Select
                       items={JOBTYPE_OPTIONS}
@@ -336,7 +396,7 @@ export const InsertApplicationForm = () => {
                           <SelectLabel>Job Types</SelectLabel>
                           {JOBTYPE_OPTIONS.map((jobType) => (
                             <SelectItem
-                              key={jobType.value}
+                              key={String(jobType.value)}
                               value={jobType.value}
                             >
                               {jobType.label}
@@ -348,7 +408,7 @@ export const InsertApplicationForm = () => {
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
@@ -360,35 +420,53 @@ export const InsertApplicationForm = () => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Deadline</FieldLabel>
-                    <Popover>
-                      <PopoverTrigger
-                        render={
-                          <Button variant="outline">
-                            <CalendarIcon />
-                            {field.state.value
-                              ? format(field.state.value, "PPP")
-                              : "Pick a date"}
-                          </Button>
-                        }
-                      />
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={
-                            field.state.value
-                              ? new Date(field.state.value)
-                              : undefined
+                    <div className="flex items-center gap-2">
+                      <Popover>
+                        <PopoverTrigger
+                          render={
+                            <Button
+                              variant="outline"
+                              className="flex-1 justify-start"
+                            >
+                              <CalendarIcon className="mr-2 size-4" />
+                              {field.state.value
+                                ? format(field.state.value, "PPP")
+                                : "Pick a date"}
+                            </Button>
                           }
-                          onSelect={(date) => field.handleChange(date ?? null)}
                         />
-                      </PopoverContent>
-                    </Popover>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={
+                              field.state.value
+                                ? new Date(field.state.value)
+                                : undefined
+                            }
+                            onSelect={(date) =>
+                              field.handleChange(date ?? null)
+                            }
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {field.state.value && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => field.handleChange(null)}
+                          title="Clear deadline"
+                        >
+                          <XIcon className="size-4" />
+                        </Button>
+                      )}
+                    </div>
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
@@ -400,18 +478,22 @@ export const InsertApplicationForm = () => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Notes</FieldLabel>
                     <Textarea
                       id={field.name}
                       value={field.state.value ?? ""}
-                      onChange={(e) => field.handleChange(e.target.value)}
+                      onChange={(e) =>
+                        field.handleChange(
+                          e.target.value.trim() === "" ? null : e.target.value
+                        )
+                      }
                       aria-invalid={isInvalid}
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
@@ -423,40 +505,74 @@ export const InsertApplicationForm = () => {
                 const isInvalid =
                   field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <>
+                  <Field>
                     <FieldLabel htmlFor={field.name}>Applied Date</FieldLabel>
-                    <Popover>
-                      <PopoverTrigger
-                        render={
-                          <Button variant="outline">
-                            <CalendarIcon />
-                            {field.state.value
-                              ? format(field.state.value, "PPP")
-                              : "Pick a date"}
-                          </Button>
-                        }
-                      />
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={
-                            field.state.value
-                              ? new Date(field.state.value)
-                              : undefined
+                    <div className="flex items-center gap-2">
+                      <Popover>
+                        <PopoverTrigger
+                          render={
+                            <Button
+                              variant="outline"
+                              className="flex-1 justify-start"
+                            >
+                              <CalendarIcon className="mr-2 size-4" />
+                              {field.state.value
+                                ? format(field.state.value, "PPP")
+                                : "Pick a date"}
+                            </Button>
                           }
-                          onSelect={(date) => field.handleChange(date ?? null)}
                         />
-                      </PopoverContent>
-                    </Popover>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={
+                              field.state.value
+                                ? new Date(field.state.value)
+                                : undefined
+                            }
+                            onSelect={(date) =>
+                              field.handleChange(date ?? null)
+                            }
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {field.state.value && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => field.handleChange(null)}
+                          title="Clear applied date"
+                        >
+                          <XIcon className="size-4" />
+                        </Button>
+                      )}
+                    </div>
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
                     )}
-                  </>
+                  </Field>
                 );
               }}
             />
-            <Field>
-              <Button type="submit">Submit</Button>
+
+            {/* Action buttons */}
+            <Field className="flex flex-row justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  navigate({
+                    to: "/applications/$id",
+                    params: { id: application.id },
+                  })
+                }
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? "Saving..." : "Save Changes"}
+              </Button>
             </Field>
           </FieldGroup>
         </form>
@@ -464,41 +580,3 @@ export const InsertApplicationForm = () => {
     </Card>
   );
 };
-
-{
-  /* <form.Field
-              name="status"
-              children={(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
-                return (
-                  <>
-                    <FieldLabel htmlFor={field.name}>Status</FieldLabel>
-                    <Select
-                      items={STATUS_OPTIONS}
-                      value={field.state.value}
-                      onValueChange={(val) => {
-                        if (val) {
-                          field.handleChange(val as typeof field.state.value);
-                        }
-                      }}
-                    >
-                      <SelectTrigger id={field.name} aria-invalid={isInvalid}>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {STATUS_OPTIONS.map((status) => (
-                          <SelectItem key={status.value} value={status.value}>
-                            {status.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
-                  </>
-                );
-              }}
-            /> */
-}

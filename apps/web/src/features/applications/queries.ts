@@ -4,7 +4,10 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { hcWithType } from "@jobtracker/api-client";
-import type { InsertApplicationsSchema } from "@jobtracker/api/schema";
+import {
+  type InsertApplicationsSchema,
+  type PatchApplicationsSchema,
+} from "@jobtracker/api/schema";
 
 const client = hcWithType("http://localhost:8787", {
   init: {
@@ -54,6 +57,36 @@ export const useInsertApplicationMutation = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["applications"] });
+    },
+  });
+};
+
+export const useUpdateApplicationMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: PatchApplicationsSchema;
+    }) => {
+      const res = await client.applications[":id"].$patch({
+        param: { id },
+        json: data,
+      });
+
+      if (!res.ok) throw new Error("Failed to update application.");
+
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      queryClient.invalidateQueries({
+        queryKey: ["applications", variables.id],
+      });
+      queryClient.invalidateQueries({ queryKey: ["stats"] });
     },
   });
 };

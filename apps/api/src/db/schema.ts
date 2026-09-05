@@ -190,6 +190,7 @@ export const insertApplicationsSchema = createInsertSchema(applications, {
   userId: true,
   createdAt: true,
   updatedAt: true,
+  stageEnteredAt: true,
 });
 export type InsertApplicationsSchema = z.infer<typeof insertApplicationsSchema>;
 

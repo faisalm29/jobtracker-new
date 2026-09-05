@@ -1,4 +1,4 @@
-import { createRoute } from "@hono/zod-openapi";
+import { createRoute, z } from "@hono/zod-openapi";
 import { StatusCodes } from "http-status-codes";
 import { jsonContent } from "../../lib/json-content";
 import { selectStatsSchema } from "../../db/schema";
